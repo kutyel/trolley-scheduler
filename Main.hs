@@ -33,33 +33,17 @@ randomDay day people shifts = fmap (Day day) (randomFillShifts people shifts)
 
 getRandomSchedule :: Int -> [Person] -> ShiftList -> IO Schedule
 getRandomSchedule days people shifts =
-  sequence [randomDay day people shifts | day <- [0 .. days - 1]]
+  sequence [randomDay day people shifts | day <- [1 .. days]]
 
-testLoop :: Int -> [Person] -> ShiftList -> Int -> IO [Schedule]
-testLoop days people shifts trys =
+generateSchedule :: Int -> [Person] -> ShiftList -> IO [Schedule]
+generateSchedule days people shifts =
   catMaybes <$>
-  mapM
-    (\t -> do
-       putStr $
-         if t `rem` 10000 == 0
-           then "Try number " ++ show t ++ "\n"
-           else ""
-       s <- getRandomSchedule days people shifts
-       if pred s
-         then return $ Just s
-         else return Nothing)
-    [0 .. trys]
+  (getRandomSchedule days people shifts >>= \s ->
+     if pred s
+       then return [Just s]
+       else return [Nothing])
   where
     pred = noonesWorkingLongerThen 7
-
-main :: IO ()
-main = do
-  let days = 30 -- The full rotation length
-      people = ["B", "E", "K", "T", "R", "C"] -- Volunteer list
-      shifts = "123" -- Each char is a seperate shift
-  found <- testLoop days people shifts 50000
-  print found
-  return ()
 
 getStaffList :: Schedule -> [Person]
 getStaffList [] = []
@@ -91,3 +75,11 @@ getStretchList sched =
 noonesWorkingLongerThen :: Int -> Schedule -> Bool
 noonesWorkingLongerThen daysLong sched =
   not . any (> daysLong) $ getStretchList sched
+
+main :: IO ()
+main = do
+  let days = 30 -- The full rotation length
+      people = ["B", "E", "K", "T", "R", "C"] -- Volunteer list
+      shifts = "123" -- Each char is a seperate shift
+  found <- generateSchedule days people shifts
+  print found
