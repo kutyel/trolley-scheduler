@@ -11,6 +11,8 @@ type Person = String
 
 type Schedule = [Day] --Adds Xs ("is-off") to the shift list to pair up with non-working people
 
+type Availability = (Person, ShiftList)
+
 data Day =
   Day Int [Shift]
   deriving (Eq)
@@ -86,7 +88,9 @@ noonesWorkingLongerThen daysLong sched =
 main :: IO ()
 main = do
   let days = 30 -- The full rotation length
-      people = ["B", "E", "K", "T", "R", "C"] -- Volunteer list
-      shifts = "123" -- Each char is a seperate shift
+      people = ["Ben", "Emily", "Kate", "Flavio", "Rob", "Caty"] -- Volunteer list
+      av -- TODO: Availability :: (Volunteer, Shifts)
+       = [("B", "23"), ("E", "1"), ("K", "13"), ("F", "3"), ("R", "2")]
+      shifts = "MTW" -- Each char is a seperate shift
   found <- generateSchedule days people shifts
   print found
