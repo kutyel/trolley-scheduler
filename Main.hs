@@ -13,11 +13,17 @@ type Schedule = [Day] --Adds Xs ("is-off") to the shift list to pair up with non
 
 data Day =
   Day Int [Shift]
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show Day where
+  show (Day n xs) = "Day " ++ show n ++ ": \n" ++ show xs
 
 data Shift =
   Shift Char Person
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show Shift where
+  show (Shift c p) = "Shift " ++ [c] ++ ", Volunteer: " ++ p ++ "\n"
 
 padShifts :: Int -> ShiftList -> ShiftList
 padShifts nPeople shifts = shifts ++ replicate (nPeople - length shifts) 'X' --Randomly assigns people shifts
@@ -26,7 +32,11 @@ randomFillShifts :: [Person] -> ShiftList -> IO [Shift]
 randomFillShifts people shifts = do
   let paddedShifts = padShifts (length people) shifts
   shuffledPeople <- shuffleM people
-  return $ zipWith Shift paddedShifts shuffledPeople
+  let schedule = zipWith Shift paddedShifts shuffledPeople
+  pure $ filter ignoreDaysOff schedule
+  where
+    ignoreDaysOff :: Shift -> Bool
+    ignoreDaysOff (Shift x _) = x /= 'X'
 
 randomDay :: Int -> [Person] -> ShiftList -> IO Day
 randomDay day people shifts = fmap (Day day) (randomFillShifts people shifts)
@@ -40,8 +50,8 @@ generateSchedule days people shifts =
   catMaybes <$>
   (getRandomSchedule days people shifts >>= \s ->
      if pred s
-       then return [Just s]
-       else return [Nothing])
+       then pure [Just s]
+       else pure [Nothing])
   where
     pred = noonesWorkingLongerThen 7
 
@@ -52,7 +62,7 @@ getStaffList (Day _ shifts:_) = map person shifts
     person (Shift _ p) = p
 
 hasOff :: Person -> Day -> Bool
-p `hasOff` (Day _ shifts) = all isOff shifts
+hasOff p (Day _ shifts) = all isOff shifts
   where
     isOff (Shift s q) = p /= q || s == 'X'
 
@@ -65,12 +75,9 @@ longestStreak e =
 
 getStretchList :: Schedule -> [Int]
 getStretchList sched =
-  map
-    (\person -> longestStreak False $ map (\day -> person `hasOff` day) sched)
-    staffList
+  map (\person -> longestStreak False $ map (hasOff person) sched) staffList
   where
-    staffList = getStaffList sched
-    -- Restrictions:
+    staffList = getStaffList sched -- TODO: Restrictions
 
 noonesWorkingLongerThen :: Int -> Schedule -> Bool
 noonesWorkingLongerThen daysLong sched =
