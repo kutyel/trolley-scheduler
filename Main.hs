@@ -31,7 +31,7 @@ zipWithPredicate :: (a -> b -> c) -> (b -> a -> Bool) -> [a] -> [b] -> [c]
 zipWithPredicate f g xs ys = [f x y | x <- xs, y <- ys, g y x]
 
 padShifts :: Int -> ShiftList -> ShiftList
-padShifts nPeople shifts = shifts ++ replicate (nPeople - length shifts) 'X' --Randomly assigns people shifts
+padShifts nPeople shifts = shifts ++ replicate (nPeople - length shifts) 'X'
 
 getPeopleFromShifts :: Availability -> Person -> Char -> Bool
 getPeopleFromShifts av p c = ifAble $ lookup p av
@@ -103,16 +103,15 @@ noonesWorkingLongerThen daysLong sched =
 
 main :: IO ()
 main = do
-  let days = 30 -- The full rotation length
-      people = ["Ben", "Emily", "Kate", "Flavio", "Rob", "Caty"] -- Volunteer list
+  let days = 30 -- TODO: get days length from month (ask with prompt)
+      people = ["Ben", "Emily", "Kate", "Flavio", "Rob", "Caty"]
       av :: Availability
       av =
         [ ("Ben", "TW")
-        , ("Emily", "M")
+        , ("Emily", "MH")
         , ("Kate", "MW")
-        , ("Flavio", "W")
-        , ("Rob", "T")
+        , ("Flavio", "TWH")
+        , ("Rob", "MTH")
         ]
-      shifts = "MTW" -- Each char is a seperate shift
-  found <- generateSchedule days people shifts av
-  print found
+      shifts = "MTWHFS" -- Each char is a seperate shift
+  print =<< generateSchedule days people shifts av
