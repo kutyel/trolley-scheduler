@@ -12,7 +12,7 @@ $ nix-shell --pure shell.nix
 
 - [ ] Read data from CSV files. 📖
 - [x] Improve printing of output. 🖨
-- [ ] Fill turns respecting availability. 📆
+- [x] Fill turns respecting availability. 📆
 - [ ] Each shift must have a Captain. 👨🏼‍✈️
 - [ ] Pioneers have more turns / preference. 🤓
 - [ ] Add long distance / has vehicle constraint. 🚗
