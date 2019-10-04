@@ -1,5 +1,7 @@
 module Main where
 
+import           Control.Conditional   (if')
+import           Control.Monad         (liftM2)
 import           Data.List
 import           Data.Maybe
 import           System.Random
@@ -14,7 +16,7 @@ type Schedule = [Day]
 type Availability = [(Person, ShiftList)]
 
 data Shift =
-  Shift Char Person
+  Shift Char Person -- TODO: [Person] 😱
   deriving (Eq)
 
 data Day =
@@ -27,32 +29,19 @@ instance Show Day where
 instance Show Shift where
   show (Shift c p) = "Shift " ++ [c] ++ ", Volunteer: " ++ p ++ "\n"
 
-zipWithPredicate :: (a -> b -> c) -> (b -> a -> Bool) -> [a] -> [b] -> [c]
-zipWithPredicate f g xs ys = [f x y | x <- xs, y <- ys, g y x]
+zipWithPredicate :: (a -> b -> c) -> (a -> b -> Bool) -> [a] -> [b] -> [c]
+zipWithPredicate f g xs ys = fmap (uncurry f) $ filter (uncurry g) $ zip xs ys
 
-padShifts :: Int -> ShiftList -> ShiftList
-padShifts nPeople shifts = shifts ++ replicate (nPeople - length shifts) 'X'
-
-getPeopleFromShifts :: Availability -> Person -> Char -> Bool
-getPeopleFromShifts av p c = ifAble $ lookup p av
+getPeopleFromShifts :: Availability -> Char -> Person -> Bool
+getPeopleFromShifts av c p = ifAble $ lookup p av
   where
     ifAble (Just s) = c `elem` s
     ifAble Nothing  = False
 
 randomFillShifts :: [Person] -> ShiftList -> Availability -> IO [Shift]
 randomFillShifts people shifts av = do
-  let paddedShifts = padShifts (length people) shifts
   shuffledPeople <- shuffleM people
-  let schedule =
-        zipWithPredicate
-          Shift
-          (getPeopleFromShifts av)
-          paddedShifts
-          shuffledPeople
-  pure $ filter ignoreDaysOff schedule
-  where
-    ignoreDaysOff :: Shift -> Bool
-    ignoreDaysOff (Shift x _) = x /= 'X'
+  pure $ zipWithPredicate Shift (getPeopleFromShifts av) shifts shuffledPeople
 
 randomDay :: Int -> [Person] -> ShiftList -> Availability -> IO Day
 randomDay day people shifts av =
@@ -65,13 +54,11 @@ getRandomSchedule days people shifts av =
 generateSchedule ::
      Int -> [Person] -> ShiftList -> Availability -> IO [Schedule]
 generateSchedule days people shifts av =
-  catMaybes <$>
-  (getRandomSchedule days people shifts av >>= \s ->
-     if pred s
-       then pure [Just s]
-       else pure [Nothing])
+  catMaybes <$> (getRandomSchedule days people shifts av >>= applyPred)
   where
     pred = noonesWorkingLongerThen 7
+    applyPred :: (Applicative f) => Schedule -> f [Maybe Schedule]
+    applyPred = flip (liftM2 if' pred (pure . return . Just)) (pure [Nothing])
 
 getStaffList :: Schedule -> [Person]
 getStaffList [] = []
@@ -82,7 +69,7 @@ getStaffList (Day _ shifts:_) = map person shifts
 hasOff :: Person -> Day -> Bool
 hasOff p (Day _ shifts) = all isOff shifts
   where
-    isOff (Shift s q) = p /= q || s == 'X'
+    isOff (Shift _ q) = p /= q
 
 longestStreak :: Eq e => e -> [e] -> Int
 longestStreak e =

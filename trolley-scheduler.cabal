@@ -16,6 +16,7 @@ executable trolley-scheduler
   main-is:             Main.hs
   ghc-options:         -threaded
   build-depends:       base >=4.12 && <4.13
+                     , cond
                      , random
                      , random-shuffle
   default-language:    Haskell2010
