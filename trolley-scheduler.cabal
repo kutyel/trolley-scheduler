@@ -19,4 +19,17 @@ executable trolley-scheduler
                      , cond
                      , random
                      , random-shuffle
+  other-modules:       Lib
+  default-language:    Haskell2010
+
+test-suite test-trolley
+  main-is: test/Test.hs
+  type: exitcode-stdio-1.0
+  ghc-options:         -threaded
+  build-depends:       base >=4.12 && <4.13
+                     , cond
+                     , random
+                     , random-shuffle
+                     , hspec
+  other-modules:       Lib
   default-language:    Haskell2010
