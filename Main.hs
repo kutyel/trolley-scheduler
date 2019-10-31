@@ -1,13 +1,6 @@
 module Main where
 
-
 import Lib
--- import           Control.Conditional   (if')
--- import           Control.Monad         (liftM2)
--- import           Data.List
--- import           Data.Maybe
--- import           System.Random
--- import           System.Random.Shuffle (shuffleM)
 
 main :: IO ()
 main = do
