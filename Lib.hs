@@ -17,17 +17,11 @@ type Availability = [(Person, ShiftList)]
 
 data Shift =
   Shift Person -- TODO: [Person] 😱
-  deriving (Eq)
+  deriving (Eq, Show)
 
 data Day =
   Day Char Int [Shift]
-  deriving (Eq)
-
-instance Show Day where
-  show (Day c n xs) = "Day " ++ [c] ++ " " ++ show n ++ ": \n" ++ show xs
-
-instance Show Shift where
-  show (Shift p) = "Shift Volunteer: " ++ p ++ "\n"
+  deriving (Eq, Show)
 
 zipWithPredicate :: (a -> b -> c) -> (a -> b -> Bool) -> [a] -> [b] -> [c]
 zipWithPredicate f g xs ys = fmap (uncurry f) $ filter (uncurry g) $ zip xs ys
