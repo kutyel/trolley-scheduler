@@ -18,6 +18,12 @@ nix$ cabal repl test-trolley
 *Lib> Test.main
 ```
 
+with ghcid:
+
+```sh
+nix$ ghcid -c 'cabal repl test-trolley' --test 'Test.main'
+```
+
 adding deps:
 
 - add to cabal file, then run:
